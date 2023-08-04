@@ -6,8 +6,35 @@ using MiniValidation;
 using RestSharp;
 using System.Text.Json.Nodes;
 using System.Text.Json;
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(MyAllowSpecificOrigins,
+    builder =>
+    {
+        builder.WithOrigins("http://localhost:4200",
+            "http://localhost:80",
+            "http://localhost:5000",
+            "http://localhost:443",
+            "http://localhost:32770",
+            "http://host.docker.internal:32770",
+            "https://localhost:32770",
+            "https://host.docker.internal:32770")
+             .AllowAnyHeader()
+               .AllowAnyMethod()
+               .SetIsOriginAllowed((x) => true)
+               .AllowCredentials();
+    });
+});
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.KnownProxies.Add(IPAddress.Parse("127.0.0.1"));
+});
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
